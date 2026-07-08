@@ -1,0 +1,36 @@
+name: Order
+version: 2.0.0
+author: _addycpvp
+main: org.order.order.Order
+api-version: '1.21'
+depend: [money]
+load: POSTWORLD
+
+commands:
+  orders:
+    description: Order system main command
+    usage: /orders [create|list|my|claim|searchbook|help]
+    aliases: [order]
+    permission: order.use
+
+permissions:
+  order.use:
+    description: Allows using the base /orders command (list, view, browse)
+    default: true
+  order.create:
+    description: Allows creating new sell orders
+    default: true
+  order.claim:
+    description: Allows claiming your own expired/unclaimed order items back
+    default: true
+  order.admin:
+    description: Allows administrative order commands (clear, reload, purge)
+    default: op
+  order.*:
+    description: Grants all Order permissions
+    default: op
+    children:
+      order.use: true
+      order.create: true
+      order.claim: true
+      order.admin: true

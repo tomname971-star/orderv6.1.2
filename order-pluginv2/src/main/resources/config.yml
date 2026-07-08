@@ -1,0 +1,36 @@
+# =========================================================
+#  Order Plugin - Configuration
+# =========================================================
+
+settings:
+  # How long an order stays listed and buyable before it expires (hours)
+  order-duration-hours: 24
+
+  # After an order expires, the seller can still reclaim the unsold item via
+  # /orders claim for this many extra days before it is permanently purged.
+  claim-grace-days: 7
+
+  # How many ACTIVE orders a single player may have listed at the same time
+  max-active-orders-per-player: 10
+
+  # Price bounds enforced when creating an order
+  min-price: 0.01
+  max-price: 1000000000000.0
+
+  # Maximum amount of a single item allowed in one order
+  max-order-amount: 6400000
+
+# =========================================================
+#  Database - choose "sqlite" (default, no setup needed) or "mysql"
+# =========================================================
+database:
+  type: sqlite
+
+  mysql:
+    host: localhost
+    port: 3306
+    database: order_plugin
+    username: root
+    password: "password"
+    useSSL: false
+    pool-size: 8
