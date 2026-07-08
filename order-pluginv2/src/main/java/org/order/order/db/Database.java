@@ -10,6 +10,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * Wraps a HikariCP connection pool and creates the schema on startup.
+ * Supports SQLite (file based, zero setup) and MySQL (config based).
+ */
 public class Database {
 
     public enum Type {
@@ -83,8 +87,8 @@ public class Database {
                 "seller_uuid VARCHAR(36) NOT NULL, " +
                 "seller_name VARCHAR(32) NOT NULL, " +
                 "price DOUBLE NOT NULL, " +
-                "amount INTEGER NOT NULL DEFAULT 1, " +           // NEU
-                "delivered_amount INTEGER NOT NULL DEFAULT 0, " + // NEU
+                "amount INTEGER NOT NULL DEFAULT 1, " +
+                "delivered_amount INTEGER NOT NULL DEFAULT 0, " +
                 "created_at BIGINT NOT NULL, " +
                 "status VARCHAR(16) NOT NULL" +
                 ")";
@@ -96,12 +100,11 @@ public class Database {
                 "created_at BIGINT NOT NULL" +
                 ")";
 
-        // NEUE Tabelle für Claim-System
         String claimStorageTable = "CREATE TABLE IF NOT EXISTS order_claim_storage (" +
                 "id INTEGER PRIMARY KEY " + autoIncrement + ", " +
                 "player_uuid VARCHAR(36) NOT NULL, " +
                 "item_data TEXT NOT NULL, " +
-                "claimed BOOLEAN DEFAULT FALSE, " + // NEU
+                "claimed BOOLEAN DEFAULT FALSE, " +
                 "created_at BIGINT NOT NULL" +
                 ")";
 
@@ -109,23 +112,22 @@ public class Database {
             st.execute(ordersTable);
             st.execute(payoutsTable);
             st.execute(claimStorageTable);
-            
+
             try {
                 st.execute("CREATE INDEX idx_order_status ON order_listings(status)");
-            } catch (SQLException ignored) {}
+            } catch (SQLException ignored) { /* index already exists */ }
             try {
                 st.execute("CREATE INDEX idx_order_seller ON order_listings(seller_uuid)");
-            } catch (SQLException ignored) {}
+            } catch (SQLException ignored) { /* index already exists */ }
             try {
                 st.execute("CREATE INDEX idx_payout_uuid ON order_pending_payouts(player_uuid)");
-            } catch (SQLException ignored) {}
+            } catch (SQLException ignored) { /* index already exists */ }
             try {
                 st.execute("CREATE INDEX idx_claim_player ON order_claim_storage(player_uuid)");
-            } catch (SQLException ignored) {}
+            } catch (SQLException ignored) { /* index already exists */ }
         }
     }
 
-    // NEUE Methode für Datenbank-Updates
     private void runMigrations() throws SQLException {
         try (Connection conn = getConnection(); Statement st = conn.createStatement()) {
             try {
@@ -134,15 +136,15 @@ public class Database {
                 } else {
                     st.execute("ALTER TABLE order_listings ADD COLUMN amount INTEGER DEFAULT 1");
                 }
-            } catch (SQLException ignored) {}
-            
+            } catch (SQLException ignored) { /* column already exists */ }
+
             try {
                 if (type == Type.SQLITE) {
                     st.execute("ALTER TABLE order_listings ADD COLUMN delivered_amount INTEGER DEFAULT 0");
                 } else {
                     st.execute("ALTER TABLE order_listings ADD COLUMN delivered_amount INTEGER DEFAULT 0");
                 }
-            } catch (SQLException ignored) {}
+            } catch (SQLException ignored) { /* column already exists */ }
         }
     }
 
