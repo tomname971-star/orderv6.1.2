@@ -15,21 +15,13 @@ import java.util.Set;
 
 public class ItemUtil {
 
-    /**
-     * Materials that must never be listed / sold through the order system,
-     * either because they are creative-only, admin/utility blocks, or could
-     * otherwise be abused (spawners, command blocks, structure blocks, etc).
-     * This is a blacklist enforced both in the GUI item lists and again as a
-     * hard server-side check right before any order is actually created, so
-     * it cannot be bypassed by feeding the plugin a crafted ItemStack.
-     */
     private static final Set<Material> DISALLOWED = EnumSet.noneOf(Material.class);
 
     static {
         for (Material m : Material.values()) {
             String name = m.name();
             if (m.isAir()) continue;
-            if (name.contains("LEGACY")) continue; // legacy materials aren't real items
+            if (name.contains("LEGACY")) continue;
             if (name.equals("COMMAND_BLOCK") || name.equals("CHAIN_COMMAND_BLOCK")
                     || name.equals("REPEATING_COMMAND_BLOCK") || name.equals("COMMAND_BLOCK_MINECART")) {
                 DISALLOWED.add(m);
@@ -47,7 +39,6 @@ public class ItemUtil {
         }
     }
 
-    /** Whether this material is a legitimate, listable survival item. */
     public static boolean isAllowed(Material material) {
         if (material == null) return false;
         if (material.isAir()) return false;
@@ -162,5 +153,15 @@ public class ItemUtil {
             return ChatColor.stripColor(meta.getDisplayName());
         }
         return toSmallCaps(item.getType().name().replace("_", " "));
+    }
+
+    public static String formatAmount(int amount) {
+        if (amount >= 1_000_000) {
+            return String.format("%.1f", amount / 1_000_000.0) + "M";
+        }
+        if (amount >= 1_000) {
+            return String.format("%.1f", amount / 1_000.0) + "K";
+        }
+        return String.valueOf(amount);
     }
 }
