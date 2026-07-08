@@ -61,7 +61,7 @@ public final class Order extends JavaPlugin implements Listener {
             }
         }.runTaskTimer(this, 1200L, 1200L);
 
-        getLogger().info("Order plugin enabled! (" + database.getType() + " backend)");
+        getLogger().info("Order plugin enabled successfully! (" + database.getType() + " backend)");
     }
 
     @Override
@@ -102,7 +102,7 @@ public final class Order extends JavaPlugin implements Listener {
                     orderListener.openMyOrders(p, 0);
                     return true;
                 }
-                case "claim" -> { // GEÄNDERT: Ruft jetzt claimAllRewards() auf
+                case "claim" -> {
                     if (!p.hasPermission("order.claim")) {
                         p.sendMessage(ChatColor.RED + "You don't have permission to claim orders.");
                         return true;
@@ -148,7 +148,6 @@ public final class Order extends JavaPlugin implements Listener {
         return true;
     }
 
-    // NEUE Methode
     private void claimAllRewards(Player p) {
         int count = orderManager.getUnclaimedRewardsCount(p.getUniqueId());
         if (count == 0) {
@@ -226,10 +225,10 @@ public final class Order extends JavaPlugin implements Listener {
         p.sendMessage("§e/orders §7- " + ItemUtil.toSmallCaps("open order list"));
         p.sendMessage("§e/orders create §7- " + ItemUtil.toSmallCaps("create a new order"));
         p.sendMessage("§e/orders my §7- " + ItemUtil.toSmallCaps("view your orders"));
-        p.sendMessage("§e/orders claim §7- " + ItemUtil.toSmallCaps("claim completed rewards")); // GEÄNDERT
+        p.sendMessage("§e/orders claim §7- " + ItemUtil.toSmallCaps("claim completed rewards"));
         p.sendMessage("§e/orders searchbook §7- " + ItemUtil.toSmallCaps("get a search book"));
         if (p.hasPermission("order.admin")) {
-            p.sendMessage("§e/orders reload §7- " + ItemUtil.toSmallCaps("reload config"));
+            p.sendMessage("§e/orders reload §7- " + ItemUtil.toSmallCaps("reload the config"));
             p.sendMessage("§e/orders clear §7- " + ItemUtil.toSmallCaps("clear all orders"));
         }
         p.sendMessage("§8§m----------------------------------------");
