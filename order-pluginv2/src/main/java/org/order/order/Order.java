@@ -54,7 +54,6 @@ public final class Order extends JavaPlugin implements Listener {
 
         Objects.requireNonNull(getCommand("orders")).setExecutor(this::onOrdersCommand);
 
-        // Cleanup / expire orders every minute (1200 ticks)
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -62,7 +61,7 @@ public final class Order extends JavaPlugin implements Listener {
             }
         }.runTaskTimer(this, 1200L, 1200L);
 
-        getLogger().info("Order plugin enabled successfully! (" + database.getType() + " backend)");
+        getLogger().info("Order plugin enabled! (" + database.getType() + " backend)");
     }
 
     @Override
@@ -103,12 +102,12 @@ public final class Order extends JavaPlugin implements Listener {
                     orderListener.openMyOrders(p, 0);
                     return true;
                 }
-                case "claim" -> {
+                case "claim" -> { // GEÄNDERT: Ruft jetzt claimAllRewards() auf
                     if (!p.hasPermission("order.claim")) {
                         p.sendMessage(ChatColor.RED + "You don't have permission to claim orders.");
                         return true;
                     }
-                    orderListener.openClaimOrders(p, 0);
+                    claimAllRewards(p);
                     return true;
                 }
                 case "searchbook" -> {
@@ -149,10 +148,33 @@ public final class Order extends JavaPlugin implements Listener {
         return true;
     }
 
+    // NEUE Methode
+    private void claimAllRewards(Player p) {
+        int count = orderManager.getUnclaimedRewardsCount(p.getUniqueId());
+        if (count == 0) {
+            p.sendMessage(ChatColor.RED + "You have no unclaimed rewards.");
+            return;
+        }
+
+        java.util.List<ItemStack> rewards = orderManager.claimRewards(p);
+        int claimed = 0;
+        for (ItemStack item : rewards) {
+            java.util.Map<Integer, ItemStack> leftover = p.getInventory().addItem(item);
+            if (!leftover.isEmpty()) {
+                for (ItemStack extra : leftover.values()) {
+                    p.getWorld().dropItemNaturally(p.getLocation(), extra);
+                }
+            }
+            claimed++;
+        }
+
+        p.sendMessage(ChatColor.GREEN + "You claimed " + claimed + " reward(s)!");
+        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+    }
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        // Pay out any money earned from sales while the seller was offline.
         orderManager.collectPendingPayouts(p.getUniqueId(), amount -> {
             Player online = Bukkit.getPlayer(p.getUniqueId());
             if (online == null || !online.isOnline()) return;
@@ -187,7 +209,6 @@ public final class Order extends JavaPlugin implements Listener {
         Money.addMoney(p, amount);
     }
 
-    /** Pays the seller instantly if online, otherwise queues the payout for their next login. */
     public void payoutSeller(java.util.UUID sellerUuid, double amount) {
         Player seller = Bukkit.getPlayer(sellerUuid);
         if (seller != null && seller.isOnline()) {
@@ -205,10 +226,10 @@ public final class Order extends JavaPlugin implements Listener {
         p.sendMessage("§e/orders §7- " + ItemUtil.toSmallCaps("open order list"));
         p.sendMessage("§e/orders create §7- " + ItemUtil.toSmallCaps("create a new order"));
         p.sendMessage("§e/orders my §7- " + ItemUtil.toSmallCaps("view your orders"));
-        p.sendMessage("§e/orders claim §7- " + ItemUtil.toSmallCaps("claim expired, unsold orders"));
-        p.sendMessage("§e/orders searchbook §7- " + ItemUtil.toSmallCaps("get a book to search items in-hand"));
+        p.sendMessage("§e/orders claim §7- " + ItemUtil.toSmallCaps("claim completed rewards")); // GEÄNDERT
+        p.sendMessage("§e/orders searchbook §7- " + ItemUtil.toSmallCaps("get a search book"));
         if (p.hasPermission("order.admin")) {
-            p.sendMessage("§e/orders reload §7- " + ItemUtil.toSmallCaps("reload the config"));
+            p.sendMessage("§e/orders reload §7- " + ItemUtil.toSmallCaps("reload config"));
             p.sendMessage("§e/orders clear §7- " + ItemUtil.toSmallCaps("clear all orders"));
         }
         p.sendMessage("§8§m----------------------------------------");
